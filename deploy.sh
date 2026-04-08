@@ -88,7 +88,7 @@ setup_ufw() {
     ufw --force reset >/dev/null 2>&1
     ufw default deny incoming >/dev/null 2>&1
     ufw default allow outgoing >/dev/null 2>&1
-    ufw default deny routed >/dev/null 2>&1
+    ufw default allow routed >/dev/null 2>&1
     ufw allow 443 >/dev/null 2>&1
     ufw allow 8684 >/dev/null 2>&1
     ufw allow 2244 >/dev/null 2>&1
