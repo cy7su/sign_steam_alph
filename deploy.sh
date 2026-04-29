@@ -92,7 +92,6 @@ setup_ufw() {
     ufw allow 443 >/dev/null 2>&1
     ufw allow 8684 >/dev/null 2>&1
     ufw allow 2244 >/dev/null 2>&1
-    ufw allow 6734 >/dev/null 2>&1
     ufw allow 5631 >/dev/null 2>&1
     ufw --force enable >/dev/null 2>&1
 
@@ -135,6 +134,17 @@ setup_bash_customs() {
 
     sed -i '/alias q=/d' /root/.bashrc
     cat >> /root/.bashrc << 'EOF'
+
+# --- RED PROTOCOL ALIASES ---
+alias q='/root/q.sh'
+alias status='q status'
+alias start='q start all'
+alias stop='q stop all'
+alias restart='q restart all'
+alias clear='q clear'
+alias zip='q zip'
+alias db='q db'
+alias st='q st'
 alias sr='sudo reboot'
 EOF
     update_status "Алиасы добавлены в .bashrc"
@@ -159,20 +169,16 @@ NC='\033[0m'
 
 echo -e "${BLOOD}"
 cat << 'ASCII'
-⠄⠄⠄⠄⠄⣸⣿⣮⣝⢱⣶⢵⡚⣽⣵⣿⣦⣝⣄⠄⠄⠄⠄⠄⠄⠄⠄⠄
-⠄⣤⣤⣦⣝⣙⡩⠭⡍⣿⣷⣶⣼⣦⣭⣝⡻⣿⣶⡢⠄⠄⠄⠄⠄⠄⠄⠄
-⣾⣿⣿⠫⣰⣿⣿⣿⣧⢽⣿⣿⣿⣿⣿⣿⣿⡜⣿⣿⣅⠄⠄⠄⠄⠄⠄⠄
-⢿⣿⡿⢰⣿⣿⣿⣿⣿⣷⣮⣛⢿⡿⡿⠿⢻⢡⣜⣿⣿⡼⣤⠄⠄⠄⠄⠄
-⠈⣿⣧⢻⠟⠛⠻⣿⣿⣿⣿⣿⡆⣷⣿⣿⣿⣧⠳⣿⣿⣿⣿⠂⠄⠄⠄⠄
-⠄⠘⣿⣞⠄⠺⠄⢸⣿⣿⣿⣿⠇⣾⣿⣿⣿⣿⠄⠈⠻⣿⠟⠄⠄⠄⠄⠄
-⠄⠄⠸⢿⣷⣔⠶⢿⣿⣿⠿⣋⣾⣿⣿⡻⣿⣿⣷⣤⣤⣄⣀⠄⠄⠄⠄⠄
-⠄⠄⠄⠄⠉⢻⣿⣗⡦⡠⠚⢿⣿⣿⣿⣿⣜⢿⣿⣿⣿⣿⣿⣷⣤⣀⡀⠄
-⠄⠄⠄⠄⠄⠈⢺⢿⣿⣿⣷⣮⡛⢿⣿⣿⣿⣿⣿⣿⣿⣿⡿⣻⣿⣿⣿⣦
-⠄⠄⠄⠄⠄⠄⠄⠁⢻⣿⣿⣿⣿⣧⣛⢿⣿⣿⣾⣿⣿⣿⡇⣿⣿⣿⣿⣿
-⠄⠄⠄⠄⠄⠄⠄⠄⠄⠈⠙⠿⢿⣿⣿⣷⣦⣏⣛⣝⡽⣙⢨⣿⣿⣿⣿⣿
-⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠹⠗⡞⠬⠛⠻⠻⣿⣿⣿⣶⡡⣿⣿⣿⣿⣿
-⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⣴⣿⣿⣿⣿⣿⣷⣮⢻⡛⡧⢓⢹⣿⣿⣿⣿
-⠄⠄⠄⠄⠄⠄⠄⠄⠄⢀⣾⣿⣿⣿⣿⣿⣿⣿⣿⣷⣭⢂⠰⠡⢿⣿⣿⣿
+ ▄████▄▓██   ██▓  ██████  █    ██
+▒██▀ ▀█ ▒██  ██▒▒██    ▒  ██  ▓██▒
+▒▓█    ▄ ▒██ ██░░ ▓██▄   ▓██  ▒██░
+▒▓▓▄ ▄██▒░ ▐██▓░  ▒   ██▒▓▓█  ░██░
+▒ ▓███▀ ░░ ██▒▓░▒██████▒▒▒▒█████▓
+░ ░▒ ▒  ░ ██▒▒▒ ▒ ▒▓▒ ▒ ░░▒▓▒ ▒ ▒
+  ░  ▒  ▓██ ░▒░ ░ ░▒  ░ ░░░▒░ ░ ░
+░       ▒ ▒ ░░  ░  ░  ░   ░░░ ░ ░
+░ ░     ░ ░           ░     ░
+░       ░ ░
 ASCII
 echo -e "${NC}"
 
