@@ -151,7 +151,11 @@ EOF
 }
 
 setup_motd() {
-    echo -ne "${WAIT} Создание Bloody MOTD..."
+    echo -ne "${WAIT} Настройка Bloody MOTD с автовыравниванием..."
+
+    # Установка утилиты для колонок, если её нет
+    sudo apt-get update -y >/dev/null 2>&1
+    sudo apt-get install -y bsdmainutils >/dev/null 2>&1
 
     # Очистка старого MOTD
     sudo chmod -x /etc/update-motd.d/* 2>/dev/null || true
@@ -162,76 +166,70 @@ setup_motd() {
 #!/bin/bash
 
 # Цвета
-BLOOD='\033[38;5;160m'     # Насыщенный красный для лого
-DARK_RED='\033[38;5;88m'   # Темно-красный для инфо
-GRAY='\033[38;5;244m'      # Серый для заголовков
-NC='\033[0m'               # Сброс
+BLOOD='\033[38;5;196m'    # Ярко-красный для лого
+DARK_RED='\033[38;5;88m'  # ТЕМНО-КРАСНЫЙ для данных
+GRAY='\033[38;5;244m'     # СЕРЫЙ для названий
+NC='\033[0m'              # Сброс
 
-# Функция для центрирования (добавляет пробелы перед лого)
-# Логотип примерно 65 символов в ширину. Добавим отступ в 10 пробелов.
-LOGO_PADDING="          "
+# --- Функция центрирования ASCII ---
+center_output() {
+    local term_width=$(tput cols 2>/dev/null || echo 80)
+    while IFS= read -r line; do
+        local line_len=$(echo "$line" | sed 's/\033\[[0-9;]*m//g' | wc -c)
+        local padding=$(( (term_width - line_len) / 2 ))
+        [ $padding -lt 0 ] && padding=0
+        printf "%${padding}s%s\n" "" "$line"
+    done
+}
 
+# --- Логотип ---
 echo -e "${BLOOD}"
-echo "${LOGO_PADDING}                                         .x+=:.                  "
-echo "${LOGO_PADDING}            ..             .ue~~%u.     z`    ^%                 "
-echo "${LOGO_PADDING}           @L            .d88   z88i       .   <k    x.    .     "
-echo "${LOGO_PADDING}      .   9888i   .dL   x888E  *8888     .@8Ned8\"  .@88k  z88u   "
-echo "${LOGO_PADDING} .udR88N  `Y888k:*888. :8888E   ^\"\"    .@^%8888\"  ~\"8888 ^8888   "
-echo "${LOGO_PADDING}<888'888k   888E  888I 98888E.=tWc.   x88:  `)8b.   8888  888R   "
-echo "${LOGO_PADDING}9888 'Y\"    888E  888I 98888N  '888N  8888N=*8888   8888  888R   "
-echo "${LOGO_PADDING}9888        888E  888I 98888E   8888E  %8\"    R88   8888  888R   "
-echo "${LOGO_PADDING}9888        888E  888I '8888E   8888E   @8Wou 9%    8888 ,888B . "
-echo "${LOGO_PADDING}?8888u../  x888N><888'  ?888E   8888\" .888888P`    \"8888Y 8888\"  "
-echo "${LOGO_PADDING} \"8888P'    \"88\"  888    \"88&   888\"  `   ^\"F       `Y\"   'YP    "
-echo "${LOGO_PADDING}   \"P'            88F      \"\"==*\"\"                               "
-echo "${LOGO_PADDING}                 98\"                                             "
-echo "${LOGO_PADDING}               ./\"                                               "
-echo "${LOGO_PADDING}              ~`                                                 "
+cat << 'ASCII' | center_output
+                                         .x+=:.                  
+            ..             .ue~~%u.     z`    ^%                 
+           @L            .d88   z88i       .   <k    x.    .     
+      .   9888i   .dL   x888E  *8888     .@8Ned8"  .@88k  z88u   
+ .udR88N  `Y888k:*888. :8888E   ^""    .@^%8888"  ~"8888 ^8888   
+<888'888k   888E  888I 98888E.=tWc.   x88:  `)8b.   8888  888R   
+9888 'Y"    888E  888I 98888N  '888N  8888N=*8888   8888  888R   
+9888        888E  888I 98888E   8888E  %8"    R88   8888  888R   
+9888        888E  888I '8888E   8888E   @8Wou 9%    8888 ,888B . 
+?8888u../  x888N><888'  ?888E   8888" .888888P`    "8888Y 8888"  
+ "8888P'    "88"  888    "88&   888"  `   ^"F       `Y"   'YP    
+   "P'            88F      ""==*""                               
+                 98"                                             
+               ./"                                               
+              ~`                                                 
+ASCII
 echo -e "${NC}"
 
 # === Сбор информации ===
 UPTIME=$(uptime -p | sed 's/up //')
 LOAD=$(cat /proc/loadavg 2>/dev/null | awk '{print $1" "$2" "$3}')
 USERS=$(who | wc -l)
-
-if command -v free >/dev/null 2>&1; then
-    MEM=$(free -m | awk '/^Mem:/ {printf "%s/%s MiB (%.1f%%)", $3, $2, $3*100/$2}')
-else
-    MEM="N/A"
-fi
-
-if command -v df >/dev/null 2>&1; then
-    DISK=$(df -h / | awk 'NR==2 {printf "%s/%s (%s)", $3, $2, $5}')
-else
-    DISK="N/A"
-fi
-
-if command -v curl >/dev/null 2>&1; then
-    IP=$(curl -s --max-time 4 ifconfig.me 2>/dev/null || echo "N/A")
-else
-    IP="N/A"
-fi
-
+MEM=$(free -m | awk '/^Mem:/ {printf "%s/%s MiB (%.1f%%)", $3, $2, $3*100/$2}')
+DISK=$(df -h / | awk 'NR==2 {printf "%s/%s (%s)", $3, $2, $5}')
+IP=$(curl -s --max-time 2 ifconfig.me || echo "N/A")
 CPU_USAGE=$(top -bn1 2>/dev/null | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}' || echo "N/A")
 
-# === ВЫВОД (Названия слева серые, Инфо справа темно-красное) ===
-# %-20s — резервирует 20 символов под название (выравнивание по левому краю)
-# %s — выводит значение сразу после этого блока
-INDENT="          " # Отступ для блока текста, чтобы был под логотипом
+# === Формирование таблицы через утилиту column ===
+# Мы используем символ "|" как разделитель, а column превратит его в ровные отступы
+(
+echo -e "${GRAY}Uptime|${DARK_RED}${UPTIME}"
+echo -e "${GRAY}Users|${DARK_RED}${USERS} online"
+echo -e "|" # Пустая строка (разделитель)
+echo -e "${GRAY}CPU Load|${DARK_RED}${LOAD}"
+echo -e "${GRAY}CPU Usage|${DARK_RED}${CPU_USAGE}"
+echo -e "${GRAY}Memory|${DARK_RED}${MEM}"
+echo -e "${GRAY}Disk /|${DARK_RED}${DISK}"
+echo -e "${GRAY}Public IP|${DARK_RED}${IP}"
+) | column -t -s '|' | sed 's/^/          /' # sed добавляет общий отступ слева для всего блока
 
-printf "${INDENT}${GRAY}%-20s${NC} ${DARK_RED}%s${NC}\n" "Uptime" "${UPTIME}"
-printf "${INDENT}${GRAY}%-20s${NC} ${DARK_RED}%s online${NC}\n" "Users" "${USERS}"
-echo ""
-printf "${INDENT}${GRAY}%-20s${NC} ${DARK_RED}%s${NC}\n" "CPU Load" "${LOAD}"
-printf "${INDENT}${GRAY}%-20s${NC} ${DARK_RED}%s${NC}\n" "CPU Usage" "${CPU_USAGE}"
-printf "${INDENT}${GRAY}%-20s${NC} ${DARK_RED}%s${NC}\n" "Memory" "${MEM}"
-printf "${INDENT}${GRAY}%-20s${NC} ${DARK_RED}%s${NC}\n" "Disk /" "${DISK}"
-printf "${INDENT}${GRAY}%-20s${NC} ${DARK_RED}%s${NC}\n" "Public IP" "${IP}"
 echo ""
 EOF
 
     chmod +x /etc/update-motd.d/00-header
-    update_status "Баннер входа обновлён (Центрированный Bloody MOTD)"
+    update_status "MOTD обновлен"
 }
 
 disable_ubuntu_motd() {
