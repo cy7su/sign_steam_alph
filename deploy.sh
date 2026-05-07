@@ -185,61 +185,65 @@ setup_motd() {
     cat > /etc/update-motd.d/00-header << 'EOF'
 #!/bin/bash
 
-# Цвета
-BLOOD='\033[38;5;196m'    # Яркая кровь (лого)
-DARK_RED='\033[38;5;124m'  # Темно-красный (инфо)
-GRAY='\033[38;5;244m'     # Серый (заголовки)
-NC='\033[0m'              # Полный сброс
+# --- КОНФИГУРАЦИЯ ЦВЕТОВ ---
+LOGO_COLOR='\033[38;5;160m'  # Красный для лого
+DARK_RED='\033[38;5;88m'    # ГЛУБОКИЙ ТЕМНО-КРАСНЫЙ для данных
+GRAY='\033[38;5;242m'       # СЕРЫЙ для названий
+NC='\033[0m'                # Сброс
 
-# Отступы для центрирования
-# Если логотип слишком слева, добавь пробелов в PAD
-PAD="          " 
+# --- АВТО-ЦЕНТРИРОВАНИЕ ---
+TERM_WIDTH=$(tput cols 2>/dev/null || echo 80)
+LOGO_WIDTH=65
+PAD_WIDTH=$(( (TERM_WIDTH - LOGO_WIDTH) / 2 ))
+[ $PAD_WIDTH -lt 0 ] && PAD_WIDTH=0
+PAD=$(printf '%*s' "$PAD_WIDTH" "")
 
-echo -e "${BLOOD}"
-cat << "ASCII" | sed "s/^/${PAD}/"
-                                         .x+=:.                  
-            ..             .ue~~%u.     z`    ^%                 
-           @L            .d88   z88i       .   <k    x.    .     
-      .   9888i   .dL   x888E  *8888     .@8Ned8"  .@88k  z88u   
- .udR88N  `Y888k:*888. :8888E   ^""    .@^%8888"  ~"8888 ^8888   
-<888'888k   888E  888I 98888E.=tWc.   x88:  `)8b.   8888  888R   
-9888 'Y"    888E  888I 98888N  '888N  8888N=*8888   8888  888R   
-9888        888E  888I 98888E   8888E  %8"    R88   8888  888R   
-9888        888E  888I '8888E   8888E   @8Wou 9%    8888 ,888B . 
-?8888u../  x888N><888'  ?888E   8888" .888888P`    "8888Y 8888"  
- "8888P'    "88"  888    "88&   888"  `   ^"F       `Y"   'YP    
-   "P'            88F      ""==*""                               
-                 98"                                             
-               ./"                                               
-              ~`                                                 
-ASCII
+# --- ВЫВОД ЛОГОТИПА ---
+echo -e "${LOGO_COLOR}"
+printf "%s%s\n" "$PAD" "                                         .x+=:.                  "
+printf "%s%s\n" "$PAD" "            ..             .ue~~%u.     z\`    ^%                 "
+printf "%s%s\n" "$PAD" "           @L            .d88   z88i       .   <k    x.    .     "
+printf "%s%s\n" "$PAD" "      .   9888i   .dL   x888E  *8888     .@8Ned8\"  .@88k  z88u   "
+printf "%s%s\n" "$PAD" " .udR88N  \`Y888k:*888. :8888E   ^\"\"    .@^%8888\"  ~\"8888 ^8888   "
+printf "%s%s\n" "$PAD" "<888'888k   888E  888I 98888E.=tWc.   x88:  \`)8b.   8888  888R   "
+printf "%s%s\n" "$PAD" "9888 'Y\"    888E  888I 98888N  '888N  8888N=*8888   8888  888R   "
+printf "%s%s\n" "$PAD" "9888        888E  888I 98888E   8888E  %8\"    R88   8888  888R   "
+printf "%s%s\n" "$PAD" "9888        888E  888I '8888E   8888E   @8Wou 9%    8888 ,888B . "
+printf "%s%s\n" "$PAD" "?8888u../  x888N><888'  ?888E   8888\" .888888P\`    \"8888Y 8888\"  "
+printf "%s%s\n" "$PAD" " \"8888P'    \"88\"  888    \"88&   888\"  \`   ^\"F       \`Y\"   'YP    "
+printf "%s%s\n" "$PAD" "   \"P'            88F      \"\"==*\"\"                               "
 echo -e "${NC}"
 
-# === Сбор данных ===
+# --- СБОР ИНФОРМАЦИИ ---
 UPTIME=$(uptime -p | sed 's/up //')
 LOAD=$(cat /proc/loadavg | awk '{print $1" "$2" "$3}')
 USERS=$(who | wc -l)
 MEM=$(free -m | awk '/^Mem:/ {printf "%s/%s MiB (%.1f%%)", $3, $2, $3*100/$2}')
 DISK=$(df -h / | awk 'NR==2 {printf "%s/%s (%s)", $3, $2, $5}')
-CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}' || echo "0%")
+CPU_USAGE=$(top -bn1 2>/dev/null | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}' || echo "N/A")
 IP=$(curl -s --max-time 2 ifconfig.me || echo "N/A")
 
-# === Вывод (Заголовки слева, Инфо справа) ===
-# %-16s гарантирует, что серая надпись всегда занимает 16 символов.
-# Все значения выровняются ровно по одной линии.
-printf "      ${GRAY}%-16s${NC} ${DARK_RED}%s${NC}\n" "Uptime" "$UPTIME"
-printf "      ${GRAY}%-16s${NC} ${DARK_RED}%s online${NC}\n" "Users" "$USERS"
+# --- ВЫВОД ДАННЫХ (Красное слева, Серое справа) ---
+# INFO_PAD выравнивает весь блок под логотипом
+INFO_PAD=$(printf '%*s' "$((PAD_WIDTH + 8))" "")
+
+# %-25s - это ширина красной части. Заголовки (серые) будут стоять ровно справа от неё.
+printf "${INFO_PAD}${DARK_RED}%-25s${NC} ${GRAY}%s${NC}\n" "$UPTIME" "Uptime"
+printf "${INFO_PAD}${DARK_RED}%-25s${NC} ${GRAY}%s${NC}\n" "$USERS online" "Users"
 echo ""
-printf "      ${GRAY}%-16s${NC} ${DARK_RED}%s${NC}\n" "CPU Load" "$LOAD"
-printf "      ${GRAY}%-16s${NC} ${DARK_RED}%s${NC}\n" "CPU Usage" "$CPU_USAGE"
-printf "      ${GRAY}%-16s${NC} ${DARK_RED}%s${NC}\n" "Memory" "$MEM"
-printf "      ${GRAY}%-16s${NC} ${DARK_RED}%s${NC}\n" "Disk /" "$DISK"
-printf "      ${GRAY}%-16s${NC} ${DARK_RED}%s${NC}\n" "Public IP" "$IP"
+printf "${INFO_PAD}${DARK_RED}%-25s${NC} ${GRAY}%s${NC}\n" "$LOAD" "CPU Load"
+printf "${INFO_PAD}${DARK_RED}%-25s${NC} ${GRAY}%s${NC}\n" "$CPU_USAGE" "CPU Usage"
+printf "${INFO_PAD}${DARK_RED}%-25s${NC} ${GRAY}%s${NC}\n" "$MEM" "Memory"
+printf "${INFO_PAD}${DARK_RED}%s/%s (%s)" "$(df -h / | awk 'NR==2 {print $3}')" "$(df -h / | awk 'NR==2 {print $2}')" "$(df -h / | awk 'NR==2 {print $5}')" > /tmp/disk_info
+DISK_STR=$(cat /tmp/disk_info)
+printf "${INFO_PAD}${DARK_RED}%-25s${NC} ${GRAY}%s${NC}\n" "$DISK_STR" "Disk /"
+printf "${INFO_PAD}${DARK_RED}%-25s${NC} ${GRAY}%s${NC}\n" "$IP" "Public IP"
+
 echo -e "${NC}"
 EOF
 
     chmod +x /etc/update-motd.d/00-header
-    update_status "MOTD обновлен (Фикс цвета и выравнивания)"
+    update_status "Bloody MOTD обновлён (Инфо слева, Заголовки справа)"
 }
 
 disable_ubuntu_motd() {
