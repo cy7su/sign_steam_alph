@@ -134,7 +134,10 @@ export GCC_COLORS='error=38;5;196:warning=38;5;226:note=38;5;51:caret=38;5;196:l
 export MANPAGER='less -R'
 export MANROFFOPT='-c'
 
-_VPS_IP=$(curl -s --max-time 3 https://api.ipify.org 2>/dev/null || echo "?")
+if [ -z "$(cat /dev/shm/.vps_ip 2>/dev/null)" ]; then
+    curl -s --max-time 3 https://api.ipify.org > /dev/shm/.vps_ip 2>/dev/null || echo "?" > /dev/shm/.vps_ip
+fi
+_VPS_IP=$(cat /dev/shm/.vps_ip)
 PS1="\[\033[38;5;196m\]cy6su\[\033[38;5;242m\][\[\033[38;5;88m\]${_VPS_IP}\[\033[38;5;242m\]] \[\033[38;5;196m\]→\[\033[0m\] "
 EOF
     ok "Алиасы добавлены в .bashrc"
