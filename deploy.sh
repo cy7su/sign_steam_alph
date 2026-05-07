@@ -84,7 +84,7 @@ setup_ufw() {
     ufw default deny incoming >/dev/null 2>&1
     ufw default allow outgoing >/dev/null 2>&1
     ufw default allow routed >/dev/null 2>&1
-    for port in 443 8684 2244 5631; do
+    for port in 443 8684 2244 6443; do
         ufw allow "$port" >/dev/null 2>&1
     done
     ufw allow from 185.23.19.69 to any port 2222 >/dev/null 2>&1
@@ -159,7 +159,7 @@ if [ -z "$(cat /dev/shm/.vps_ip 2>/dev/null)" ]; then
     curl -s --max-time 3 https://api.ipify.org > /dev/shm/.vps_ip 2>/dev/null || echo "?" > /dev/shm/.vps_ip
 fi
 _VPS_IP=$(cat /dev/shm/.vps_ip)
-PS1="\[\033[38;5;196m\]cy6su\[\033[38;5;242m\][\[\033[38;5;88m\]${_VPS_IP}\[\033[38;5;242m\]] \[\033[38;5;196m\]→\[\033[0m\] "
+PS1="\[\033[38;5;196m\]cy6su\[\033[38;5;242m\][\[\033[38;5;88m\]${_VPS_IP}\[\033[38;5;242m\]@\[\033[38;5;196m\]\W\[\033[38;5;242m\]] \[\033[38;5;196m\]→\[\033[0m\] "
 EOF
     ok "Алиасы добавлены в .bashrc"
 }
