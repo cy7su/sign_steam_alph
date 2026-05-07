@@ -124,8 +124,9 @@ DARK_RED='\033[38;5;88m'
 GRAY='\033[38;5;242m'
 NC='\033[0m'
 
-TERM_WIDTH=$(stty size 2>/dev/null | awk '{print $2}')
-[ -z "$TERM_WIDTH" ] && TERM_WIDTH=80
+TERM_WIDTH="${COLUMNS:-0}"
+[ "$TERM_WIDTH" -lt 40 ] && TERM_WIDTH=$(stty size 2>/dev/null | awk '{print $2}')
+[ -z "$TERM_WIDTH" ] || [ "$TERM_WIDTH" -lt 40 ] && TERM_WIDTH=120
 LOGO_WIDTH=68
 LEFT_INDENT=3
 RIGHT_INDENT=3
