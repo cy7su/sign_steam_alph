@@ -162,12 +162,10 @@ setup_motd() {
 #!/bin/bash
 
 # Цвета
-BLOOD='\033[38;5;196m'
-CRIMSON='\033[38;5;124m'  # Темно-красный
-RUST='\033[38;5;130m'
-DARK='\033[38;5;237m'
-GRAY='\033[38;5;244m'     # Серый (чуть светлее для читаемости)
-NC='\033[0m'              # Сброс цвета
+BLOOD='\033[38;5;196m'    # Ярко-красный для лого
+DARK_RED='\033[38;5;88m'  # ТЕМНО-КРАСНЫЙ для инфы
+GRAY='\033[38;5;244m'     # СЕРЫЙ для заголовков
+NC='\033[0m'              # Сброс
 
 echo -e "${BLOOD}"
 cat << 'ASCII'
@@ -190,42 +188,43 @@ ASCII
 echo -e "${NC}"
 
 # === Сбор информации ===
-HOSTNAME=$(hostname -f 2>/dev/null || hostname)
-KERNEL=$(uname -r)
 UPTIME=$(uptime -p | sed 's/up //')
 LOAD=$(cat /proc/loadavg 2>/dev/null | awk '{print $1" "$2" "$3}')
 USERS=$(who | wc -l)
 
+# Исправленный расчет памяти (используем мегабайты для точности)
 if command -v free >/dev/null 2>&1; then
-    MEM=$(free -h | awk '/^Mem:/ {printf "%s/%s (%.0f%%)", $3, $2, $3/$2*100}')
+    MEM=$(free -m | awk '/^Mem:/ {printf "%s/%s MiB (%.1f%%)", $3, $2, $3*100/$2}')
 else
     MEM="N/A"
 fi
 
+# Диск
 if command -v df >/dev/null 2>&1; then
     DISK=$(df -h / | awk 'NR==2 {printf "%s/%s (%s)", $3, $2, $5}')
 else
     DISK="N/A"
 fi
 
+# IP
 if command -v curl >/dev/null 2>&1; then
     IP=$(curl -s --max-time 4 ifconfig.me 2>/dev/null || echo "N/A")
 else
     IP="N/A"
 fi
 
+# CPU Usage
 CPU_USAGE=$(top -bn1 2>/dev/null | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}' || echo "N/A")
 
-# Форматированный вывод (Надпись серая, Инфо темно-красная)
-# %-15s делает колонку шириной 15 символов с выравниванием по левому краю
-printf "  ${GRAY}%-15s${NC} ${CRIMSON}%s${NC}\n" "Uptime" "${UPTIME}"
-printf "  ${GRAY}%-15s${NC} ${CRIMSON}%s online${NC}\n" "Users" "${USERS}"
+# ВЫВОД: %-15s выравнивает заголовок влево, значения будут ровно в колонке справа
+printf "  ${GRAY}%-15s${NC} ${DARK_RED}%s${NC}\n" "Uptime" "${UPTIME}"
+printf "  ${GRAY}%-15s${NC} ${DARK_RED}%s online${NC}\n" "Users" "${USERS}"
 echo ""
-printf "  ${GRAY}%-15s${NC} ${CRIMSON}%s${NC}\n" "CPU Load" "${LOAD}"
-printf "  ${GRAY}%-15s${NC} ${CRIMSON}%s${NC}\n" "CPU Usage" "${CPU_USAGE}"
-printf "  ${GRAY}%-15s${NC} ${CRIMSON}%s${NC}\n" "Memory" "${MEM}"
-printf "  ${GRAY}%-15s${NC} ${CRIMSON}%s${NC}\n" "Disk /" "${DISK}"
-printf "  ${GRAY}%-15s${NC} ${CRIMSON}%s${NC}\n" "Public IP" "${IP}"
+printf "  ${GRAY}%-15s${NC} ${DARK_RED}%s${NC}\n" "CPU Load" "${LOAD}"
+printf "  ${GRAY}%-15s${NC} ${DARK_RED}%s${NC}\n" "CPU Usage" "${CPU_USAGE}"
+printf "  ${GRAY}%-15s${NC} ${DARK_RED}%s${NC}\n" "Memory" "${MEM}"
+printf "  ${GRAY}%-15s${NC} ${DARK_RED}%s${NC}\n" "Disk /" "${DISK}"
+printf "  ${GRAY}%-15s${NC} ${DARK_RED}%s${NC}\n" "Public IP" "${IP}"
 echo ""
 EOF
 
