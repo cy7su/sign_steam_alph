@@ -159,7 +159,18 @@ if [ -z "$(cat /dev/shm/.vps_ip 2>/dev/null)" ]; then
     curl -s --max-time 3 https://api.ipify.org > /dev/shm/.vps_ip 2>/dev/null || echo "?" > /dev/shm/.vps_ip
 fi
 _VPS_IP=$(cat /dev/shm/.vps_ip)
-PS1="\[\033[38;5;196m\]cy6su\[\033[38;5;242m\][\[\033[38;5;88m\]${_VPS_IP}\[\033[38;5;242m\]@\[\033[38;5;196m\]\W\[\033[38;5;242m\]] \[\033[38;5;196m\]→\[\033[0m\] "
+_short_pwd() {
+    local p="${PWD/#$HOME/~}"
+    local IFS='/'
+    read -ra _parts <<< "$p"
+    local n=${#_parts[@]}
+    if [ $n -le 4 ]; then
+        echo "$p"
+    else
+        echo ".../${_parts[$n-3]}/${_parts[$n-2]}/${_parts[$n-1]}"
+    fi
+}
+PS1="\[\033[38;5;196m\]cy6su\[\033[38;5;242m\][\[\033[38;5;88m\]${_VPS_IP}\[\033[38;5;242m\]@\[\033[38;5;196m\]\$(_short_pwd)\[\033[38;5;242m\]] \[\033[38;5;196m\]→\[\033[0m\] "
 EOF
     ok "Алиасы добавлены в .bashrc"
 }
