@@ -88,6 +88,7 @@ setup_ssh_port() {
 setup_bash_customs() {
     step "Интеграция q.sh"
     sed -i '/alias q=/d' /root/.bashrc
+    sed -i '/^PS1=/d' /root/.bashrc
     cat >> /root/.bashrc << 'EOF'
 
 alias q='/root/q.sh'
@@ -100,6 +101,9 @@ alias zip='q zip'
 alias db='q db'
 alias st='q st'
 alias sr='sudo reboot'
+
+_VPS_IP=$(curl -s --max-time 3 https://api.ipify.org 2>/dev/null || echo "?")
+PS1="\[\033[38;5;196m\]cy6su\[\033[38;5;242m\][\[\033[38;5;88m\]${_VPS_IP}\[\033[38;5;242m\]] \[\033[38;5;196m\]→\[\033[0m\] "
 EOF
     ok "Алиасы добавлены в .bashrc"
 }
@@ -109,6 +113,7 @@ disable_ubuntu_motd() {
     sed -i 's/PrintLastLog yes/PrintLastLog no/' /etc/ssh/sshd_config 2>/dev/null || true
     command -v systemctl >/dev/null 2>&1 && systemctl restart sshd >/dev/null 2>&1 || true
     ok "Стандартное MOTD отключено"
+    touch /root/.hushlogin
 }
 
 setup_motd() {
