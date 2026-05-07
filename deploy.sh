@@ -163,11 +163,11 @@ setup_motd() {
 
 # Цвета
 BLOOD='\033[38;5;196m'
-CRIMSON='\033[38;5;124m'
+CRIMSON='\033[38;5;124m'  # Темно-красный
 RUST='\033[38;5;130m'
 DARK='\033[38;5;237m'
-GRAY='\033[38;5;240m'
-NC='\033[0m'
+GRAY='\033[38;5;244m'     # Серый (чуть светлее для читаемости)
+NC='\033[0m'              # Сброс цвета
 
 echo -e "${BLOOD}"
 cat << 'ASCII'
@@ -216,14 +216,16 @@ fi
 
 CPU_USAGE=$(top -bn1 2>/dev/null | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}' || echo "N/A")
 
-printf " ${RUST}%-12s${NC} %s\n" "Uptime" "${UPTIME}"
-printf " ${RUST}%-12s${NC} %s\n" "Users" "${USERS} online"
+# Форматированный вывод (Надпись серая, Инфо темно-красная)
+# %-15s делает колонку шириной 15 символов с выравниванием по левому краю
+printf "  ${GRAY}%-15s${NC} ${CRIMSON}%s${NC}\n" "Uptime" "${UPTIME}"
+printf "  ${GRAY}%-15s${NC} ${CRIMSON}%s online${NC}\n" "Users" "${USERS}"
 echo ""
-printf " ${RUST}%-12s${NC} %s\n" "CPU Load" "${LOAD}"
-printf " ${RUST}%-12s${NC} %s\n" "CPU Usage" "${CPU_USAGE}"
-printf " ${RUST}%-12s${NC} %s\n" "Memory" "${MEM}"
-printf " ${RUST}%-12s${NC} %s\n" "Disk /" "${DISK}"
-printf " ${RUST}%-12s${NC} %s\n" "Public IP" "${IP}"
+printf "  ${GRAY}%-15s${NC} ${CRIMSON}%s${NC}\n" "CPU Load" "${LOAD}"
+printf "  ${GRAY}%-15s${NC} ${CRIMSON}%s${NC}\n" "CPU Usage" "${CPU_USAGE}"
+printf "  ${GRAY}%-15s${NC} ${CRIMSON}%s${NC}\n" "Memory" "${MEM}"
+printf "  ${GRAY}%-15s${NC} ${CRIMSON}%s${NC}\n" "Disk /" "${DISK}"
+printf "  ${GRAY}%-15s${NC} ${CRIMSON}%s${NC}\n" "Public IP" "${IP}"
 echo ""
 EOF
 
