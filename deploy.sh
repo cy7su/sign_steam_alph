@@ -162,29 +162,31 @@ setup_motd() {
 #!/bin/bash
 
 # Цвета
-BLOOD='\033[38;5;196m'    # Ярко-красный для лого
-DARK_RED='\033[38;5;88m'  # ТЕМНО-КРАСНЫЙ для инфы
-GRAY='\033[38;5;244m'     # СЕРЫЙ для заголовков
-NC='\033[0m'              # Сброс
+BLOOD='\033[38;5;160m'     # Насыщенный красный для лого
+DARK_RED='\033[38;5;88m'   # Темно-красный для инфо
+GRAY='\033[38;5;244m'      # Серый для заголовков
+NC='\033[0m'               # Сброс
+
+# Функция для центрирования (добавляет пробелы перед лого)
+# Логотип примерно 65 символов в ширину. Добавим отступ в 10 пробелов.
+LOGO_PADDING="          "
 
 echo -e "${BLOOD}"
-cat << 'ASCII'
-                                         .x+=:.                  
-            ..             .ue~~%u.     z`    ^%                 
-           @L            .d88   z88i       .   <k    x.    .     
-      .   9888i   .dL   x888E  *8888     .@8Ned8"  .@88k  z88u   
- .udR88N  `Y888k:*888. :8888E   ^""    .@^%8888"  ~"8888 ^8888   
-<888'888k   888E  888I 98888E.=tWc.   x88:  `)8b.   8888  888R   
-9888 'Y"    888E  888I 98888N  '888N  8888N=*8888   8888  888R   
-9888        888E  888I 98888E   8888E  %8"    R88   8888  888R   
-9888        888E  888I '8888E   8888E   @8Wou 9%    8888 ,888B . 
-?8888u../  x888N><888'  ?888E   8888" .888888P`    "8888Y 8888"  
- "8888P'    "88"  888    "88&   888"  `   ^"F       `Y"   'YP    
-   "P'            88F      ""==*""                               
-                 98"                                             
-               ./"                                               
-              ~`                                                 
-ASCII
+echo "${LOGO_PADDING}                                         .x+=:.                  "
+echo "${LOGO_PADDING}            ..             .ue~~%u.     z`    ^%                 "
+echo "${LOGO_PADDING}           @L            .d88   z88i       .   <k    x.    .     "
+echo "${LOGO_PADDING}      .   9888i   .dL   x888E  *8888     .@8Ned8\"  .@88k  z88u   "
+echo "${LOGO_PADDING} .udR88N  `Y888k:*888. :8888E   ^\"\"    .@^%8888\"  ~\"8888 ^8888   "
+echo "${LOGO_PADDING}<888'888k   888E  888I 98888E.=tWc.   x88:  `)8b.   8888  888R   "
+echo "${LOGO_PADDING}9888 'Y\"    888E  888I 98888N  '888N  8888N=*8888   8888  888R   "
+echo "${LOGO_PADDING}9888        888E  888I 98888E   8888E  %8\"    R88   8888  888R   "
+echo "${LOGO_PADDING}9888        888E  888I '8888E   8888E   @8Wou 9%    8888 ,888B . "
+echo "${LOGO_PADDING}?8888u../  x888N><888'  ?888E   8888\" .888888P`    \"8888Y 8888\"  "
+echo "${LOGO_PADDING} \"8888P'    \"88\"  888    \"88&   888\"  `   ^\"F       `Y\"   'YP    "
+echo "${LOGO_PADDING}   \"P'            88F      \"\"==*\"\"                               "
+echo "${LOGO_PADDING}                 98\"                                             "
+echo "${LOGO_PADDING}               ./\"                                               "
+echo "${LOGO_PADDING}              ~`                                                 "
 echo -e "${NC}"
 
 # === Сбор информации ===
@@ -192,44 +194,44 @@ UPTIME=$(uptime -p | sed 's/up //')
 LOAD=$(cat /proc/loadavg 2>/dev/null | awk '{print $1" "$2" "$3}')
 USERS=$(who | wc -l)
 
-# Исправленный расчет памяти (используем мегабайты для точности)
 if command -v free >/dev/null 2>&1; then
     MEM=$(free -m | awk '/^Mem:/ {printf "%s/%s MiB (%.1f%%)", $3, $2, $3*100/$2}')
 else
     MEM="N/A"
 fi
 
-# Диск
 if command -v df >/dev/null 2>&1; then
     DISK=$(df -h / | awk 'NR==2 {printf "%s/%s (%s)", $3, $2, $5}')
 else
     DISK="N/A"
 fi
 
-# IP
 if command -v curl >/dev/null 2>&1; then
     IP=$(curl -s --max-time 4 ifconfig.me 2>/dev/null || echo "N/A")
 else
     IP="N/A"
 fi
 
-# CPU Usage
 CPU_USAGE=$(top -bn1 2>/dev/null | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}' || echo "N/A")
 
-# ВЫВОД: %-15s выравнивает заголовок влево, значения будут ровно в колонке справа
-printf "  ${GRAY}%-15s${NC} ${DARK_RED}%s${NC}\n" "Uptime" "${UPTIME}"
-printf "  ${GRAY}%-15s${NC} ${DARK_RED}%s online${NC}\n" "Users" "${USERS}"
+# === ВЫВОД (Названия слева серые, Инфо справа темно-красное) ===
+# %-20s — резервирует 20 символов под название (выравнивание по левому краю)
+# %s — выводит значение сразу после этого блока
+INDENT="          " # Отступ для блока текста, чтобы был под логотипом
+
+printf "${INDENT}${GRAY}%-20s${NC} ${DARK_RED}%s${NC}\n" "Uptime" "${UPTIME}"
+printf "${INDENT}${GRAY}%-20s${NC} ${DARK_RED}%s online${NC}\n" "Users" "${USERS}"
 echo ""
-printf "  ${GRAY}%-15s${NC} ${DARK_RED}%s${NC}\n" "CPU Load" "${LOAD}"
-printf "  ${GRAY}%-15s${NC} ${DARK_RED}%s${NC}\n" "CPU Usage" "${CPU_USAGE}"
-printf "  ${GRAY}%-15s${NC} ${DARK_RED}%s${NC}\n" "Memory" "${MEM}"
-printf "  ${GRAY}%-15s${NC} ${DARK_RED}%s${NC}\n" "Disk /" "${DISK}"
-printf "  ${GRAY}%-15s${NC} ${DARK_RED}%s${NC}\n" "Public IP" "${IP}"
+printf "${INDENT}${GRAY}%-20s${NC} ${DARK_RED}%s${NC}\n" "CPU Load" "${LOAD}"
+printf "${INDENT}${GRAY}%-20s${NC} ${DARK_RED}%s${NC}\n" "CPU Usage" "${CPU_USAGE}"
+printf "${INDENT}${GRAY}%-20s${NC} ${DARK_RED}%s${NC}\n" "Memory" "${MEM}"
+printf "${INDENT}${GRAY}%-20s${NC} ${DARK_RED}%s${NC}\n" "Disk /" "${DISK}"
+printf "${INDENT}${GRAY}%-20s${NC} ${DARK_RED}%s${NC}\n" "Public IP" "${IP}"
 echo ""
 EOF
 
     chmod +x /etc/update-motd.d/00-header
-    update_status "Баннер входа обновлён (Bloody MOTD)"
+    update_status "Баннер входа обновлён (Центрированный Bloody MOTD)"
 }
 
 disable_ubuntu_motd() {
