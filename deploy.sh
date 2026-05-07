@@ -116,16 +116,16 @@ setup_motd() {
     chmod -x /etc/update-motd.d/* 2>/dev/null || true
     rm -f /etc/motd /etc/update-motd.d/* 2>/dev/null || true
 
-    cat > /etc/update-motd.d/00-header << 'EOF'
+    cat > /etc/profile.d/motd.sh << 'EOF'
 #!/bin/bash
+[ -z "$PS1" ] && return
 
 LOGO_COLOR='\033[38;5;160m'
 DARK_RED='\033[38;5;88m'
 GRAY='\033[38;5;242m'
 NC='\033[0m'
 
-TERM_WIDTH="${COLUMNS:-0}"
-[ "$TERM_WIDTH" -lt 40 ] && TERM_WIDTH=$(stty size 2>/dev/null | awk '{print $2}')
+TERM_WIDTH=$(stty size 2>/dev/null | awk '{print $2}')
 [ -z "$TERM_WIDTH" ] || [ "$TERM_WIDTH" -lt 40 ] && TERM_WIDTH=120
 LOGO_WIDTH=68
 LEFT_INDENT=3
@@ -165,7 +165,7 @@ USERS=$(who | wc -l)
 MEM=$(free -m | awk '/^Mem:/ {printf "%s/%s MiB (%.1f%%)", $3, $2, $3*100/$2}')
 DISK=$(df -h / | awk '$NF=="/"{printf "%s/%s (%s)", $3,$2,$5}')
 CPU=$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}')
-IP=$(curl -s --max-time 2 ifconfig.me || echo "N/A")
+IP=$(curl -s --max-time 3 https://api.ipify.org || curl -s --max-time 3 ifconfig.me || echo "N/A")
 
 print_row "Uptime" "$UPTIME"
 print_row "Users" "$USERS online"
@@ -178,8 +178,8 @@ print_row "Public IP" "$IP"
 echo
 EOF
 
-    chmod +x /etc/update-motd.d/00-header
-    ok "Bloody MOTD установлен"
+    chmod +x /etc/profile.d/motd.sh
+    ok "Bloody MOTD установлен (profile.d)"
 }
 
 optimize_network
