@@ -160,8 +160,7 @@ setup_bash_customs() {
 
     sed -i '/alias q=/d' /root/.bashrc
     cat >> /root/.bashrc << 'EOF'
-
-# --- RED PROTOCOL ALIASES ---
+    
 alias q='/root/q.sh'
 alias status='q status'
 alias start='q start all'
@@ -177,40 +176,27 @@ EOF
 }
 
 setup_motd() {
-    echo -ne "${WAIT} Настройка Bloody MOTD с автовыравниванием..."
+    echo -ne "${WAIT} Создание Bloody MOTD..."
 
-    # Установка утилиты для колонок, если её нет
-    sudo apt-get update -y >/dev/null 2>&1
-    sudo apt-get install -y bsdmainutils >/dev/null 2>&1
-
-    # Очистка старого MOTD
+    # Очистка старого
     sudo chmod -x /etc/update-motd.d/* 2>/dev/null || true
-    sudo rm -f /etc/motd
-    sudo rm -f /etc/update-motd.d/* 2>/dev/null || true
+    sudo rm -f /etc/motd /etc/update-motd.d/* 2>/dev/null || true
 
     cat > /etc/update-motd.d/00-header << 'EOF'
 #!/bin/bash
 
 # Цвета
-BLOOD='\033[38;5;196m'    # Ярко-красный для лого
-DARK_RED='\033[38;5;88m'  # ТЕМНО-КРАСНЫЙ для данных
-GRAY='\033[38;5;244m'     # СЕРЫЙ для названий
-NC='\033[0m'              # Сброс
+BLOOD='\033[38;5;196m'    # Яркая кровь (лого)
+DARK_RED='\033[38;5;124m'  # Темно-красный (инфо)
+GRAY='\033[38;5;244m'     # Серый (заголовки)
+NC='\033[0m'              # Полный сброс
 
-# --- Функция центрирования ASCII ---
-center_output() {
-    local term_width=$(tput cols 2>/dev/null || echo 80)
-    while IFS= read -r line; do
-        local line_len=$(echo "$line" | sed 's/\033\[[0-9;]*m//g' | wc -c)
-        local padding=$(( (term_width - line_len) / 2 ))
-        [ $padding -lt 0 ] && padding=0
-        printf "%${padding}s%s\n" "" "$line"
-    done
-}
+# Отступы для центрирования
+# Если логотип слишком слева, добавь пробелов в PAD
+PAD="          " 
 
-# --- Логотип ---
 echo -e "${BLOOD}"
-cat << 'ASCII' | center_output
+cat << "ASCII" | sed "s/^/${PAD}/"
                                          .x+=:.                  
             ..             .ue~~%u.     z`    ^%                 
            @L            .d88   z88i       .   <k    x.    .     
@@ -229,33 +215,31 @@ cat << 'ASCII' | center_output
 ASCII
 echo -e "${NC}"
 
-# === Сбор информации ===
+# === Сбор данных ===
 UPTIME=$(uptime -p | sed 's/up //')
-LOAD=$(cat /proc/loadavg 2>/dev/null | awk '{print $1" "$2" "$3}')
+LOAD=$(cat /proc/loadavg | awk '{print $1" "$2" "$3}')
 USERS=$(who | wc -l)
 MEM=$(free -m | awk '/^Mem:/ {printf "%s/%s MiB (%.1f%%)", $3, $2, $3*100/$2}')
 DISK=$(df -h / | awk 'NR==2 {printf "%s/%s (%s)", $3, $2, $5}')
+CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}' || echo "0%")
 IP=$(curl -s --max-time 2 ifconfig.me || echo "N/A")
-CPU_USAGE=$(top -bn1 2>/dev/null | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}' || echo "N/A")
 
-# === Формирование таблицы через утилиту column ===
-# Мы используем символ "|" как разделитель, а column превратит его в ровные отступы
-(
-echo -e "${GRAY}Uptime|${DARK_RED}${UPTIME}"
-echo -e "${GRAY}Users|${DARK_RED}${USERS} online"
-echo -e "|" # Пустая строка (разделитель)
-echo -e "${GRAY}CPU Load|${DARK_RED}${LOAD}"
-echo -e "${GRAY}CPU Usage|${DARK_RED}${CPU_USAGE}"
-echo -e "${GRAY}Memory|${DARK_RED}${MEM}"
-echo -e "${GRAY}Disk /|${DARK_RED}${DISK}"
-echo -e "${GRAY}Public IP|${DARK_RED}${IP}"
-) | column -t -s '|' | sed 's/^/          /' # sed добавляет общий отступ слева для всего блока
-
+# === Вывод (Заголовки слева, Инфо справа) ===
+# %-16s гарантирует, что серая надпись всегда занимает 16 символов.
+# Все значения выровняются ровно по одной линии.
+printf "      ${GRAY}%-16s${NC} ${DARK_RED}%s${NC}\n" "Uptime" "$UPTIME"
+printf "      ${GRAY}%-16s${NC} ${DARK_RED}%s online${NC}\n" "Users" "$USERS"
 echo ""
+printf "      ${GRAY}%-16s${NC} ${DARK_RED}%s${NC}\n" "CPU Load" "$LOAD"
+printf "      ${GRAY}%-16s${NC} ${DARK_RED}%s${NC}\n" "CPU Usage" "$CPU_USAGE"
+printf "      ${GRAY}%-16s${NC} ${DARK_RED}%s${NC}\n" "Memory" "$MEM"
+printf "      ${GRAY}%-16s${NC} ${DARK_RED}%s${NC}\n" "Disk /" "$DISK"
+printf "      ${GRAY}%-16s${NC} ${DARK_RED}%s${NC}\n" "Public IP" "$IP"
+echo -e "${NC}"
 EOF
 
     chmod +x /etc/update-motd.d/00-header
-    update_status "MOTD обновлен"
+    update_status "MOTD обновлен (Фикс цвета и выравнивания)"
 }
 
 disable_ubuntu_motd() {
