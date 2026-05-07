@@ -185,65 +185,66 @@ setup_motd() {
     cat > /etc/update-motd.d/00-header << 'EOF'
 #!/bin/bash
 
-# --- КОНФИГУРАЦИЯ ЦВЕТОВ ---
-LOGO_COLOR='\033[38;5;160m'  # Красный для лого
-DARK_RED='\033[38;5;88m'    # ГЛУБОКИЙ ТЕМНО-КРАСНЫЙ для данных
-GRAY='\033[38;5;242m'       # СЕРЫЙ для названий
-NC='\033[0m'                # Сброс
+# --- ЦВЕТА ---
+LOGO_COLOR='\033[38;5;160m'
+DARK_RED='\033[38;5;88m'    # Тот самый темно-красный
+GRAY='\033[38;5;242m'       # Серый
+NC='\033[0m'
 
-# --- АВТО-ЦЕНТРИРОВАНИЕ ---
+# --- ЛОГИКА ЦЕНТРИРОВАНИЯ ---
 TERM_WIDTH=$(tput cols 2>/dev/null || echo 80)
 LOGO_WIDTH=65
-PAD_WIDTH=$(( (TERM_WIDTH - LOGO_WIDTH) / 2 ))
-[ $PAD_WIDTH -lt 0 ] && PAD_WIDTH=0
-PAD=$(printf '%*s' "$PAD_WIDTH" "")
+# Центрирование логотипа
+LOGO_PAD_VAL=$(( (TERM_WIDTH - LOGO_WIDTH) / 2 ))
+[ $LOGO_PAD_VAL -lt 0 ] && LOGO_PAD_VAL=0
+LOGO_PAD=$(printf '%*s' "$LOGO_PAD_VAL" "")
 
-# --- ВЫВОД ЛОГОТИПА ---
+# Центрирование текста (блок шириной примерно 45 символов)
+TEXT_BLOCK_WIDTH=45
+TEXT_PAD_VAL=$(( (TERM_WIDTH - TEXT_BLOCK_WIDTH) / 2 ))
+[ $TEXT_PAD_VAL -lt 0 ] && TEXT_PAD_VAL=0
+TEXT_PAD=$(printf '%*s' "$TEXT_PAD_VAL" "")
+
 echo -e "${LOGO_COLOR}"
-printf "%s%s\n" "$PAD" "                                         .x+=:.                  "
-printf "%s%s\n" "$PAD" "            ..             .ue~~%u.     z\`    ^%                 "
-printf "%s%s\n" "$PAD" "           @L            .d88   z88i       .   <k    x.    .     "
-printf "%s%s\n" "$PAD" "      .   9888i   .dL   x888E  *8888     .@8Ned8\"  .@88k  z88u   "
-printf "%s%s\n" "$PAD" " .udR88N  \`Y888k:*888. :8888E   ^\"\"    .@^%8888\"  ~\"8888 ^8888   "
-printf "%s%s\n" "$PAD" "<888'888k   888E  888I 98888E.=tWc.   x88:  \`)8b.   8888  888R   "
-printf "%s%s\n" "$PAD" "9888 'Y\"    888E  888I 98888N  '888N  8888N=*8888   8888  888R   "
-printf "%s%s\n" "$PAD" "9888        888E  888I 98888E   8888E  %8\"    R88   8888  888R   "
-printf "%s%s\n" "$PAD" "9888        888E  888I '8888E   8888E   @8Wou 9%    8888 ,888B . "
-printf "%s%s\n" "$PAD" "?8888u../  x888N><888'  ?888E   8888\" .888888P\`    \"8888Y 8888\"  "
-printf "%s%s\n" "$PAD" " \"8888P'    \"88\"  888    \"88&   888\"  \`   ^\"F       \`Y\"   'YP    "
-printf "%s%s\n" "$PAD" "   \"P'            88F      \"\"==*\"\"                               "
+printf "%s%s\n" "$LOGO_PAD" "                                         .x+=:.                  "
+printf "%s%s\n" "$LOGO_PAD" "            ..             .ue~~%u.     z\`    ^%                 "
+printf "%s%s\n" "$LOGO_PAD" "           @L            .d88   z88i       .   <k    x.    .     "
+printf "%s%s\n" "$LOGO_PAD" "      .   9888i   .dL   x888E  *8888     .@8Ned8\"  .@88k  z88u   "
+printf "%s%s\n" "$LOGO_PAD" " .udR88N  \`Y888k:*888. :8888E   ^\"\"    .@^%8888\"  ~\"8888 ^8888   "
+printf "%s%s\n" "$LOGO_PAD" "<888'888k   888E  888I 98888E.=tWc.   x88:  \`)8b.   8888  888R   "
+printf "%s%s\n" "$LOGO_PAD" "9888 'Y\"    888E  888I 98888N  '888N  8888N=*8888   8888  888R   "
+printf "%s%s\n" "$LOGO_PAD" "9888        888E  888I 98888E   8888E  %8\"    R88   8888  888R   "
+printf "%s%s\n" "$LOGO_PAD" "9888        888E  888I '8888E   8888E   @8Wou 9%    8888 ,888B . "
+printf "%s%s\n" "$LOGO_PAD" "?8888u../  x888N><888'  ?888E   8888\" .888888P\`    \"8888Y 8888\"  "
+printf "%s%s\n" "$LOGO_PAD" " \"8888P'    \"88\"  888    \"88&   888\"  \`   ^\"F       \`Y\"   'YP    "
+printf "%s%s\n" "$LOGO_PAD" "   \"P'            88F      \"\"==*\"\"                               "
 echo -e "${NC}"
 
-# --- СБОР ИНФОРМАЦИИ ---
+# --- СБОР ДАННЫХ ---
 UPTIME=$(uptime -p | sed 's/up //')
 LOAD=$(cat /proc/loadavg | awk '{print $1" "$2" "$3}')
 USERS=$(who | wc -l)
 MEM=$(free -m | awk '/^Mem:/ {printf "%s/%s MiB (%.1f%%)", $3, $2, $3*100/$2}')
-DISK=$(df -h / | awk 'NR==2 {printf "%s/%s (%s)", $3, $2, $5}')
-CPU_USAGE=$(top -bn1 2>/dev/null | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}' || echo "N/A")
+DISK=$(df -h / | awk '$NF=="/"{printf "%s/%s (%s)", $3,$2,$5}')
+CPU=$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}' || echo "N/A")
 IP=$(curl -s --max-time 2 ifconfig.me || echo "N/A")
 
-# --- ВЫВОД ДАННЫХ (Красное слева, Серое справа) ---
-# INFO_PAD выравнивает весь блок под логотипом
-INFO_PAD=$(printf '%*s' "$((PAD_WIDTH + 8))" "")
-
-# %-25s - это ширина красной части. Заголовки (серые) будут стоять ровно справа от неё.
-printf "${INFO_PAD}${DARK_RED}%-25s${NC} ${GRAY}%s${NC}\n" "$UPTIME" "Uptime"
-printf "${INFO_PAD}${DARK_RED}%-25s${NC} ${GRAY}%s${NC}\n" "$USERS online" "Users"
+# --- ВЫВОД (Серый слева, Красный справа) ---
+# %-20s - ширина серой колонки.
+printf "${TEXT_PAD}${GRAY}%-20s${NC} ${DARK_RED}%s${NC}\n" "Uptime" "$UPTIME"
+printf "${TEXT_PAD}${GRAY}%-20s${NC} ${DARK_RED}%s online${NC}\n" "Users" "$USERS"
 echo ""
-printf "${INFO_PAD}${DARK_RED}%-25s${NC} ${GRAY}%s${NC}\n" "$LOAD" "CPU Load"
-printf "${INFO_PAD}${DARK_RED}%-25s${NC} ${GRAY}%s${NC}\n" "$CPU_USAGE" "CPU Usage"
-printf "${INFO_PAD}${DARK_RED}%-25s${NC} ${GRAY}%s${NC}\n" "$MEM" "Memory"
-printf "${INFO_PAD}${DARK_RED}%s/%s (%s)" "$(df -h / | awk 'NR==2 {print $3}')" "$(df -h / | awk 'NR==2 {print $2}')" "$(df -h / | awk 'NR==2 {print $5}')" > /tmp/disk_info
-DISK_STR=$(cat /tmp/disk_info)
-printf "${INFO_PAD}${DARK_RED}%-25s${NC} ${GRAY}%s${NC}\n" "$DISK_STR" "Disk /"
-printf "${INFO_PAD}${DARK_RED}%-25s${NC} ${GRAY}%s${NC}\n" "$IP" "Public IP"
+printf "${TEXT_PAD}${GRAY}%-20s${NC} ${DARK_RED}%s${NC}\n" "CPU Load" "$LOAD"
+printf "${TEXT_PAD}${GRAY}%-20s${NC} ${DARK_RED}%s${NC}\n" "CPU Usage" "$CPU"
+printf "${TEXT_PAD}${GRAY}%-20s${NC} ${DARK_RED}%s${NC}\n" "Memory" "$MEM"
+printf "${TEXT_PAD}${GRAY}%-20s${NC} ${DARK_RED}%s${NC}\n" "Disk /" "$DISK"
+printf "${TEXT_PAD}${GRAY}%-20s${NC} ${DARK_RED}%s${NC}\n" "Public IP" "$IP"
 
 echo -e "${NC}"
 EOF
 
     chmod +x /etc/update-motd.d/00-header
-    update_status "Bloody MOTD обновлён (Инфо слева, Заголовки справа)"
+    update_status "Bloody MOTD обновлён (Идеальный баланс)"
 }
 
 disable_ubuntu_motd() {
