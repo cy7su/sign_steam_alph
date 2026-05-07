@@ -160,7 +160,14 @@ if [ -z "$(cat /dev/shm/.vps_ip 2>/dev/null)" ]; then
 fi
 _VPS_IP=$(cat /dev/shm/.vps_ip)
 _short_pwd() {
-    local p="${PWD/#$HOME/~}"
+    local p
+    if [ "$PWD" = "$HOME" ]; then
+        p="~"
+    elif [ "${PWD#$HOME/}" != "$PWD" ]; then
+        p="~/${PWD#$HOME/}"
+    else
+        p="$PWD"
+    fi
     local IFS='/'
     read -ra _parts <<< "$p"
     local n=${#_parts[@]}
