@@ -216,8 +216,6 @@ fi
 
 CPU_USAGE=$(top -bn1 2>/dev/null | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}' || echo "N/A")
 
-printf " ${RUST}%-12s${NC} %s\n" "Hostname" "${HOSTNAME}"
-printf " ${RUST}%-12s${NC} %s\n" "Kernel" "${KERNEL}"
 printf " ${RUST}%-12s${NC} %s\n" "Uptime" "${UPTIME}"
 printf " ${RUST}%-12s${NC} %s\n" "Users" "${USERS} online"
 echo ""
@@ -226,8 +224,6 @@ printf " ${RUST}%-12s${NC} %s\n" "CPU Usage" "${CPU_USAGE}"
 printf " ${RUST}%-12s${NC} %s\n" "Memory" "${MEM}"
 printf " ${RUST}%-12s${NC} %s\n" "Disk /" "${DISK}"
 printf " ${RUST}%-12s${NC} %s\n" "Public IP" "${IP}"
-
-echo -e "\n${GRAY}Последнее обновление: $(date '+%d.%m.%Y %H:%M')${NC}"
 echo ""
 EOF
 
