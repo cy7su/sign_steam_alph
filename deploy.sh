@@ -159,25 +159,8 @@ if [ -z "$(cat /dev/shm/.vps_ip 2>/dev/null)" ]; then
     curl -s --max-time 3 https://api.ipify.org > /dev/shm/.vps_ip 2>/dev/null || echo "?" > /dev/shm/.vps_ip
 fi
 _VPS_IP=$(cat /dev/shm/.vps_ip)
-_short_pwd() {
-    local p
-    if [ "$PWD" = "/root" ]; then
-        p="~"
-    elif [ "${PWD#/root/}" != "$PWD" ]; then
-        p="~/${PWD#/root/}"
-    else
-        p="$PWD"
-    fi
-    local IFS='/'
-    read -ra _parts <<< "$p"
-    local n=${#_parts[@]}
-    if [ $n -le 4 ]; then
-        echo "$p"
-    else
-        echo ".../${_parts[$n-3]}/${_parts[$n-2]}/${_parts[$n-1]}"
-    fi
-}
-PS1="\[\033[38;5;196m\]cy6su\[\033[38;5;242m\][\[\033[38;5;88m\]${_VPS_IP}\[\033[38;5;242m\]@\[\033[38;5;196m\]\$(_short_pwd)\[\033[38;5;242m\]] \[\033[38;5;196m\]→\[\033[0m\] "
+PROMPT_COMMAND='__p="$PWD"; if [ "$__p" = "/root" ]; then _D="~"; else __p="${__p/#\/root\//~\/}"; IFS=/ read -ra __a <<< "$__p"; __n=${#__a[@]}; if [ $__n -gt 4 ]; then _D=".../${__a[$__n-3]}/${__a[$__n-2]}/${__a[$__n-1]}"; else _D="$__p"; fi; fi'
+PS1="\[\033[38;5;196m\]cy6su\[\033[38;5;242m\][\[\033[38;5;88m\]${_VPS_IP}\[\033[38;5;242m\]@\[\033[38;5;196m\]\${_D}\[\033[38;5;242m\]] \[\033[38;5;196m\]→\[\033[0m\] "
 EOF
     ok "Алиасы добавлены в .bashrc"
 }
