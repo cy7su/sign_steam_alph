@@ -153,69 +153,86 @@ EOF
 setup_motd() {
     echo -ne "${WAIT} Создание Bloody MOTD..."
 
-    if ! command -v cat >/dev/null 2>&1; then
-        update_status "cat не установлен" 1
-    fi
+    # Очистка старого MOTD
+    sudo chmod -x /etc/update-motd.d/* 2>/dev/null || true
+    sudo rm -f /etc/motd
+    sudo rm -f /etc/update-motd.d/* 2>/dev/null || true
 
-    [ -f /etc/motd ] && rm -f /etc/motd
-    [ -d /etc/update-motd.d ] && rm -f /etc/update-motd.d/*
     cat > /etc/update-motd.d/00-header << 'EOF'
 #!/bin/bash
+
+# Цвета
 BLOOD='\033[38;5;196m'
 CRIMSON='\033[38;5;124m'
-RUST='\033[38;5;131m'
-ASH='\033[38;5;237m'
+RUST='\033[38;5;130m'
+DARK='\033[38;5;237m'
+GRAY='\033[38;5;240m'
 NC='\033[0m'
 
 echo -e "${BLOOD}"
 cat << 'ASCII'
- ▄████▄▓██   ██▓  ██████  █    ██
-▒██▀ ▀█ ▒██  ██▒▒██    ▒  ██  ▓██▒
-▒▓█    ▄ ▒██ ██░░ ▓██▄   ▓██  ▒██░
-▒▓▓▄ ▄██▒░ ▐██▓░  ▒   ██▒▓▓█  ░██░
-▒ ▓███▀ ░░ ██▒▓░▒██████▒▒▒▒█████▓
-░ ░▒ ▒  ░ ██▒▒▒ ▒ ▒▓▒ ▒ ░░▒▓▒ ▒ ▒
-  ░  ▒  ▓██ ░▒░ ░ ░▒  ░ ░░░▒░ ░ ░
-░       ▒ ▒ ░░  ░  ░  ░   ░░░ ░ ░
-░ ░     ░ ░           ░     ░
-░       ░ ░
+                                         .x+=:.                  
+            ..             .ue~~%u.     z`    ^%                 
+           @L            .d88   z88i       .   <k    x.    .     
+      .   9888i   .dL   x888E  *8888     .@8Ned8"  .@88k  z88u   
+ .udR88N  `Y888k:*888. :8888E   ^""    .@^%8888"  ~"8888 ^8888   
+<888'888k   888E  888I 98888E.=tWc.   x88:  `)8b.   8888  888R   
+9888 'Y"    888E  888I 98888N  '888N  8888N=*8888   8888  888R   
+9888        888E  888I 98888E   8888E  %8"    R88   8888  888R   
+9888        888E  888I '8888E   8888E   @8Wou 9%    8888 ,888B . 
+?8888u../  x888N><888'  ?888E   8888" .888888P`    "8888Y 8888"  
+ "8888P'    "88"  888    "88&   888"  `   ^"F       `Y"   'YP    
+   "P'            88F      ""==*""                               
+                 98"                                             
+               ./"                                               
+              ~`                                                 
 ASCII
 echo -e "${NC}"
 
-if command -v uptime >/dev/null 2>&1; then
-    uptime=$(uptime -p | sed 's/up //')
-else
-    uptime="uptime not installed"
-fi
-load=$(cat /proc/loadavg 2>/dev/null | awk '{print $1" "$2" "$3}' || echo "unavailable")
+# === Сбор информации ===
+HOSTNAME=$(hostname -f 2>/dev/null || hostname)
+KERNEL=$(uname -r)
+UPTIME=$(uptime -p | sed 's/up //')
+LOAD=$(cat /proc/loadavg 2>/dev/null | awk '{print $1" "$2" "$3}')
+USERS=$(who | wc -l)
+
 if command -v free >/dev/null 2>&1; then
-    mem=$(free -h | awk '/^Mem:/ {print $3"/"$2}')
+    MEM=$(free -h | awk '/^Mem:/ {printf "%s/%s (%.0f%%)", $3, $2, $3/$2*100}')
 else
-    mem="free not installed"
-fi
-if command -v df >/dev/null 2>&1; then
-    disk=$(df -h / | awk 'NR==2 {print $3"/"$2" ("$5")"}')
-else
-    disk="df not installed"
-fi
-if command -v curl >/dev/null 2>&1; then
-    ipv4=$(curl -s -4 --max-time 5 ifconfig.me 2>/dev/null || echo "unavailable")
-else
-    ipv4="curl not installed"
+    MEM="N/A"
 fi
 
-echo -e "${CRIMSON}SYSTEM INFO:${NC}"
-printf "  ${RUST}%-10s${NC} %s\n" "Uptime" "$uptime"
-printf "  ${RUST}%-10s${NC} %s\n" "Load"   "$load"
-printf "  ${RUST}%-10s${NC} %s\n" "Memory" "$mem"
-printf "  ${RUST}%-10s${NC} %s\n" "Disk"   "$disk"
-printf "  ${RUST}%-10s${NC} %s\n" "IPv4"   "$ipv4"
+if command -v df >/dev/null 2>&1; then
+    DISK=$(df -h / | awk 'NR==2 {printf "%s/%s (%s)", $3, $2, $5}')
+else
+    DISK="N/A"
+fi
+
+if command -v curl >/dev/null 2>&1; then
+    IP=$(curl -s --max-time 4 ifconfig.me 2>/dev/null || echo "N/A")
+else
+    IP="N/A"
+fi
+
+CPU_USAGE=$(top -bn1 2>/dev/null | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}' || echo "N/A")
+
+printf " ${RUST}%-12s${NC} %s\n" "Hostname" "${HOSTNAME}"
+printf " ${RUST}%-12s${NC} %s\n" "Kernel" "${KERNEL}"
+printf " ${RUST}%-12s${NC} %s\n" "Uptime" "${UPTIME}"
+printf " ${RUST}%-12s${NC} %s\n" "Users" "${USERS} online"
+echo ""
+printf " ${RUST}%-12s${NC} %s\n" "CPU Load" "${LOAD}"
+printf " ${RUST}%-12s${NC} %s\n" "CPU Usage" "${CPU_USAGE}"
+printf " ${RUST}%-12s${NC} %s\n" "Memory" "${MEM}"
+printf " ${RUST}%-12s${NC} %s\n" "Disk /" "${DISK}"
+printf " ${RUST}%-12s${NC} %s\n" "Public IP" "${IP}"
+
+echo -e "\n${GRAY}Последнее обновление: $(date '+%d.%m.%Y %H:%M')${NC}"
 echo ""
 EOF
-    if command -v chmod >/dev/null 2>&1; then
-        chmod +x /etc/update-motd.d/00-header
-    fi
-    update_status "Баннер входа обновлен"
+
+    chmod +x /etc/update-motd.d/00-header
+    update_status "Баннер входа обновлён (Bloody MOTD)"
 }
 
 disable_ubuntu_motd() {
