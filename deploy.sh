@@ -161,10 +161,10 @@ fi
 _VPS_IP=$(cat /dev/shm/.vps_ip)
 _short_pwd() {
     local p
-    if [ "$PWD" = "$HOME" ]; then
+    if [ "$PWD" = "/root" ]; then
         p="~"
-    elif [ "${PWD#$HOME/}" != "$PWD" ]; then
-        p="~/${PWD#$HOME/}"
+    elif [ "${PWD#/root/}" != "$PWD" ]; then
+        p="~/${PWD#/root/}"
     else
         p="$PWD"
     fi
