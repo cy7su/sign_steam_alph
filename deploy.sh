@@ -102,6 +102,38 @@ alias db='q db'
 alias st='q st'
 alias sr='sudo reboot'
 
+alias la='ls -la --color=auto'
+alias ll='ls -lh --color=auto'
+alias l='ls -CF --color=auto'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias grep='grep --color=auto'
+alias df='df -h'
+alias du='du -h'
+alias free='free -m'
+alias ports='ss -tulnp'
+alias logs='journalctl -f'
+alias reload='source /root/.bashrc'
+alias diff='diff --color=auto'
+alias ip='ip --color=auto'
+alias cat='cat'
+
+export LS_COLORS='di=38;5;33:ln=38;5;51:so=38;5;199:pi=38;5;226:ex=38;5;196:bd=38;5;208:cd=38;5;208:su=38;5;196:sg=38;5;196:tw=38;5;33:ow=38;5;33:*.tar=38;5;196:*.tgz=38;5;196:*.zip=38;5;196:*.gz=38;5;196:*.bz2=38;5;196:*.sh=38;5;226:*.py=38;5;226:*.js=38;5;226:*.ts=38;5;226:*.json=38;5;51:*.yaml=38;5;51:*.yml=38;5;51:*.conf=38;5;51:*.log=38;5;242:*.md=38;5;255:*.png=38;5;199:*.jpg=38;5;199:*.gif=38;5;199:*.mp4=38;5;199:*.sql=38;5;208'
+
+export LESS='-R'
+export LESS_TERMCAP_mb=$'\033[38;5;196m'
+export LESS_TERMCAP_md=$'\033[38;5;196m'
+export LESS_TERMCAP_me=$'\033[0m'
+export LESS_TERMCAP_se=$'\033[0m'
+export LESS_TERMCAP_so=$'\033[38;5;226;48;5;52m'
+export LESS_TERMCAP_ue=$'\033[0m'
+export LESS_TERMCAP_us=$'\033[38;5;88m'
+
+export GCC_COLORS='error=38;5;196:warning=38;5;226:note=38;5;51:caret=38;5;196:locus=38;5;242:quote=38;5;88'
+
+export MANPAGER='less -R'
+export MANROFFOPT='-c'
+
 _VPS_IP=$(curl -s --max-time 3 https://api.ipify.org 2>/dev/null || echo "?")
 PS1="\[\033[38;5;196m\]cy6su\[\033[38;5;242m\][\[\033[38;5;88m\]${_VPS_IP}\[\033[38;5;242m\]] \[\033[38;5;196m\]→\[\033[0m\] "
 EOF
